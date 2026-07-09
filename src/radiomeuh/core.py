@@ -220,14 +220,28 @@ class TrackStore:
 
 
 # --- Audio player discovery -------------------------------------------------
+# When launched from Finder/Dock, macOS gives the app a minimal PATH that does
+# not include Homebrew's bin dirs, so we search those explicitly too.
+_EXTRA_BIN_DIRS = ("/opt/homebrew/bin", "/usr/local/bin", "/opt/local/bin")
+
+
+def _which(name: str) -> str | None:
+    """Like shutil.which, but also searches common Homebrew/MacPorts bin dirs."""
+    found = shutil.which(name)
+    if found:
+        return found
+    extra_path = os.pathsep.join(_EXTRA_BIN_DIRS)
+    return shutil.which(name, path=os.environ.get("PATH", "") + os.pathsep + extra_path)
+
+
 def find_player() -> tuple[str, list[str]] | None:
     """Return (name, command_prefix) for an available audio player."""
-    if shutil.which("ffplay"):
-        return "ffplay", ["ffplay", "-nodisp", "-autoexit", "-loglevel", "quiet"]
-    if shutil.which("mpv"):
-        return "mpv", ["mpv", "--no-video", "--really-quiet"]
-    if shutil.which("mplayer"):
-        return "mplayer", ["mplayer", "-really-quiet"]
-    if shutil.which("cvlc"):
-        return "cvlc", ["cvlc", "--intf", "dummy", "--quiet"]
+    if path := _which("ffplay"):
+        return "ffplay", [path, "-nodisp", "-autoexit", "-loglevel", "quiet"]
+    if path := _which("mpv"):
+        return "mpv", [path, "--no-video", "--really-quiet"]
+    if path := _which("mplayer"):
+        return "mplayer", [path, "-really-quiet"]
+    if path := _which("cvlc"):
+        return "cvlc", [path, "--intf", "dummy", "--quiet"]
     return None

@@ -27,6 +27,20 @@ IDLE_ICON = "🐮"
 PLAY_ICON = "🎧"
 
 
+def _notify(message: str) -> None:
+    """Show a non-blocking macOS banner (unlike rumps.alert, never freezes the menu)."""
+    text = message.replace('"', "'")
+    subprocess.Popen(
+        [
+            "osascript",
+            "-e",
+            f'display notification "{text}" with title "Radio Meuh"',
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
 class RadioMeuhApp(rumps.App):
     def __init__(self):
         super().__init__(IDLE_ICON, quit_button=None)
@@ -86,10 +100,8 @@ class RadioMeuhApp(rumps.App):
     def start(self):
         player = find_player()
         if player is None:
-            rumps.alert(
-                "Radio Meuh",
-                "No audio player found.\nInstall ffmpeg:  brew install ffmpeg",
-            )
+            _notify("No audio player found — run: brew install ffmpeg")
+            self.now_item.title = "⚠  Install ffmpeg (brew install ffmpeg)"
             return
         _, cmd = player
         url = STREAMS[self.quality]
@@ -101,7 +113,8 @@ class RadioMeuhApp(rumps.App):
                 stderr=subprocess.DEVNULL,
             )
         except OSError as exc:
-            rumps.alert("Radio Meuh", f"Could not start playback:\n{exc}")
+            _notify(f"Could not start playback: {exc}")
+            self.now_item.title = "⚠  Could not start playback"
             return
         self.reader = MetadataReader(url, store=self.store)
         self.reader.start()
@@ -162,7 +175,7 @@ class RadioMeuhApp(rumps.App):
     # --- Other menu actions ----------------------------------------------
     def show_stats(self, _=None):
         if not self.store:
-            rumps.alert("Radio Meuh", "No database available.")
+            _notify("No listening database available yet.")
             return
         s = self.store.stats()
         lines = [
