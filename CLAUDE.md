@@ -21,7 +21,7 @@ git config core.hooksPath .githooks    # enable pre-commit lint/format gate (onc
 python -m radiomeuh.menubar            # run in-terminal for dev (Ctrl-C to stop)
 ./scripts/build_app.sh                 # (re)generate RadioMeuh.app
 open RadioMeuh.app
-./kill.sh                              # kill a stuck stream/app and relaunch RadioMeuh.app
+make restart                           # kill a stuck stream/app and relaunch (= ./scripts/kill.sh)
 ```
 
 There is **no test suite**; `dev` deps are only `ruff` + `black`.
@@ -47,7 +47,7 @@ Each announced track is written to SQLite (`TrackStore`, one connection shared a
 
 - **`find_player` must search Homebrew dirs, not just `PATH`.** When the `.app` is launched from Finder/Dock, macOS gives it a minimal `PATH` that excludes `/opt/homebrew/bin`, so `shutil.which` alone fails to find `ffplay`. `find_player` augments the search path and returns the **absolute** binary path.
 - **Never use blocking `rumps.alert` for errors in the menu bar app.** `rumps.alert` calls `NSAlert.runModal()`, which freezes the entire status menu (including Quit) until dismissed. Use the non-blocking `_notify()` helper (an `osascript display notification` banner) plus an inline menu hint instead. `rumps.notification` does **not** work here — the launcher runs `.venv/bin/python`, so rumps looks for `Info.plist` next to that interpreter and the notification center comes back `None`.
-- **The `.app` runs the editable-installed package via the venv interpreter** (`exec .venv/bin/python -m radiomeuh.menubar`). Code edits are picked up on the next relaunch (`./kill.sh`); rerun `build_app.sh` only when the launcher or `Info.plist` needs to change.
+- **The `.app` runs the editable-installed package via the venv interpreter** (`exec .venv/bin/python -m radiomeuh.menubar`). Code edits are picked up on the next relaunch (`make restart`); rerun `build_app.sh` only when the launcher or `Info.plist` needs to change.
 
 ## Conventions
 

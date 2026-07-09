@@ -3,8 +3,8 @@
 # Useful when a modal error dialog freezes the menu and you can't Quit normally.
 set -u
 
-APP_DIR="$(cd "$(dirname "$0")" && pwd)"
-APP="$APP_DIR/RadioMeuh.app"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+APP="$ROOT/RadioMeuh.app"
 
 echo "🔎  Looking for Radio Meuh processes…"
 
