@@ -24,7 +24,7 @@ from .core import (
 )
 
 IDLE_ICON = "🐮"
-PLAY_ICON = "🎧"
+PLAY_ICON = "🐮"
 
 
 def _notify(message: str) -> None:
