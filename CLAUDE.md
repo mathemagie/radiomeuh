@@ -12,6 +12,10 @@ git config core.hooksPath .githooks    # enable pre-commit lint/format gate (onc
 # Lint / format (also what the pre-commit hook enforces)
 .venv/bin/ruff check . && .venv/bin/ruff format --check . && .venv/bin/black --check src scripts
 
+# Tests (pytest, enforced at 100% coverage via --cov-fail-under=100 in pyproject.toml)
+make test                              # = .venv/bin/pytest
+.venv/bin/pytest tests/test_core.py::test_join      # run a single test
+
 # Run the CLI
 .venv/bin/radiomeuh                    # play 128k stream + live now-playing
 .venv/bin/radiomeuh -q 64 | --no-meta | --url URL | --debug
@@ -24,7 +28,9 @@ open RadioMeuh.app
 make restart                           # kill a stuck stream/app and relaunch (= ./scripts/kill.sh)
 ```
 
-There is **no test suite**; `dev` deps are only `ruff` + `black`.
+Tests live in `tests/` (pytest); `menubar.py` is tested against a **fake `rumps`**
+injected in `tests/conftest.py` (real `rumps.alert` is a blocking modal and
+`rumps.quit_application` would kill the run). Coverage is gated at 100%.
 
 ## Architecture
 

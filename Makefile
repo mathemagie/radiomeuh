@@ -4,7 +4,7 @@ PIP  := $(VENV)/bin/pip
 
 .DEFAULT_GOAL := help
 
-.PHONY: help venv install lint format run menubar app restart clean
+.PHONY: help venv install lint format test run menubar app restart clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -27,6 +27,9 @@ lint: ## Run ruff + black checks (same as the pre-commit hook)
 format: ## Auto-format the code
 	$(VENV)/bin/ruff format .
 	$(VENV)/bin/ruff check --fix .
+
+test: ## Run the test suite with 100% coverage gate
+	$(VENV)/bin/pytest
 
 run: ## Run the CLI (play the stream)
 	$(VENV)/bin/radiomeuh

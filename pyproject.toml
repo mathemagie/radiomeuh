@@ -16,7 +16,7 @@ dependencies = []
 
 [project.optional-dependencies]
 menubar = ["rumps>=0.4"]
-dev = ["ruff", "black"]
+dev = ["ruff", "black", "pytest", "pytest-cov"]
 
 [project.scripts]
 radiomeuh = "radiomeuh.cli:main"
@@ -36,3 +36,16 @@ select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
 
 [tool.black]
 line-length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=radiomeuh --cov-report=term-missing --cov-fail-under=100"
+
+[tool.coverage.run]
+source = ["radiomeuh"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+]
