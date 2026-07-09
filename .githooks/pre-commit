@@ -1,0 +1,47 @@
+#!/bin/bash
+# Pre-commit hook: lint + format-check the Python code before allowing a commit.
+# Enable once with:  git config core.hooksPath .githooks
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+# Prefer a repo-local venv, then a system install.
+if [ -x ".venv/bin/ruff" ]; then
+  RUFF=".venv/bin/ruff"
+elif command -v ruff >/dev/null 2>&1; then
+  RUFF="ruff"
+else
+  echo "pre-commit: ruff not found; skipping (pip install ruff to enable)." >&2
+  RUFF=""
+fi
+
+if [ -x ".venv/bin/black" ]; then
+  BLACK=".venv/bin/black"
+elif command -v black >/dev/null 2>&1; then
+  BLACK="black"
+else
+  BLACK=""
+fi
+
+status=0
+
+if [ -n "$RUFF" ]; then
+  echo "pre-commit: ruff check"
+  "$RUFF" check . || status=1
+  echo "pre-commit: ruff format --check"
+  "$RUFF" format --check . || status=1
+fi
+
+if [ -n "$BLACK" ]; then
+  echo "pre-commit: black --check"
+  "$BLACK" --check src scripts 2>/dev/null || status=1
+fi
+
+if [ "$status" -ne 0 ]; then
+  echo "" >&2
+  echo "pre-commit: checks failed. Fix with:  ruff check --fix . && ruff format . && black src" >&2
+  exit 1
+fi
+
+echo "pre-commit: all checks passed."

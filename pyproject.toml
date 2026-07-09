@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radiomeuh"
+version = "1.0.0"
+description = "Stream Radio Meuh (independent French radio) from your terminal or macOS menu bar."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["radio", "streaming", "cli", "menubar", "icecast"]
+
+# Core CLI has zero runtime dependencies (stdlib + an external audio player).
+dependencies = []
+
+[project.optional-dependencies]
+menubar = ["rumps>=0.4"]
+dev = ["ruff", "black"]
+
+[project.scripts]
+radiomeuh = "radiomeuh.cli:main"
+
+[project.gui-scripts]
+radiomeuh-menubar = "radiomeuh.menubar:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
+
+[tool.black]
+line-length = 88
