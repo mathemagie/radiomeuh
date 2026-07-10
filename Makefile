@@ -4,7 +4,7 @@ PIP  := $(VENV)/bin/pip
 
 .DEFAULT_GOAL := help
 
-.PHONY: help venv install lint format test run menubar app restart clean
+.PHONY: help venv install lint format test run stats history menubar app restart clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -33,6 +33,12 @@ test: ## Run the test suite with 100% coverage gate
 
 run: ## Run the CLI (play the stream)
 	$(VENV)/bin/radiomeuh
+
+stats: ## Show listening stats (totals + top artists)
+	$(VENV)/bin/radiomeuh stats
+
+history: ## Show recent track history
+	$(VENV)/bin/radiomeuh history
 
 menubar: ## Run the menu bar app in the terminal (Ctrl-C to stop)
 	$(PY) -m radiomeuh.menubar
