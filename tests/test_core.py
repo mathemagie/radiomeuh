@@ -217,6 +217,40 @@ def test_track_store_log_recent_stats_close(tmp_path):
     store.close()
 
 
+def test_track_store_log_skips_consecutive_repeat(tmp_path):
+    # A fresh MetadataReader re-announces the currently-playing track on every
+    # app (re)start; the store must not record that as a new play.
+    store = core.TrackStore(str(tmp_path / "t.db"))
+    store.log("Alpha", "One", "Alpha - One", "Radio Meuh")
+    store.log("Alpha", "One", "Alpha - One", "Radio Meuh")
+    assert len(store.recent(10)) == 1
+    store.close()
+
+
+def test_track_store_log_keeps_nonconsecutive_repeat(tmp_path):
+    # A genuine replay (A, B, A) is three plays, not a duplicate.
+    store = core.TrackStore(str(tmp_path / "t.db"))
+    store.log("Alpha", "One", "Alpha - One", "Radio Meuh")
+    store.log("Beta", "Two", "Beta - Two", "Radio Meuh")
+    store.log("Alpha", "One", "Alpha - One", "Radio Meuh")
+    assert len(store.recent(10)) == 3
+    store.close()
+
+
+def test_track_store_log_repeat_after_window_is_logged(tmp_path):
+    store = core.TrackStore(str(tmp_path / "t.db"))
+    store.log("Alpha", "One", "Alpha - One", "Radio Meuh")
+    # Age the row beyond the dedup window: same raw again is a new play.
+    with store._lock:
+        store._conn.execute(
+            "UPDATE tracks SET played_utc = '2000-01-01T00:00:00+00:00'"
+        )
+        store._conn.commit()
+    store.log("Alpha", "One", "Alpha - One", "Radio Meuh")
+    assert len(store.recent(10)) == 2
+    store.close()
+
+
 def test_track_store_stats_empty(tmp_path):
     store = core.TrackStore(str(tmp_path / "empty.db"))
     s = store.stats()

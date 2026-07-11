@@ -11,7 +11,7 @@ import sqlite3
 import threading
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 STREAMS = {
     "128": "https://radiomeuh.ice.infomaniak.ch/radiomeuh-128.mp3",
@@ -172,6 +172,10 @@ class TrackStore:
         )
         self._conn.commit()
 
+    # A restart re-announces the currently-playing track; treat a repeat of
+    # the newest row within this window as the same play, not a new one.
+    DEDUP_WINDOW = timedelta(minutes=30)
+
     def log(self, artist: str, title: str, raw: str, station: str):
         now_utc = datetime.now(timezone.utc)
         row = (
@@ -183,6 +187,15 @@ class TrackStore:
             station,
         )
         with self._lock:
+            last = self._conn.execute(
+                "SELECT raw, played_utc FROM tracks ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+            if (
+                last is not None
+                and last[0] == raw
+                and now_utc - datetime.fromisoformat(last[1]) < self.DEDUP_WINDOW
+            ):
+                return
             self._conn.execute(
                 "INSERT INTO tracks"
                 " (artist, title, raw, played_at, played_utc, station)"
